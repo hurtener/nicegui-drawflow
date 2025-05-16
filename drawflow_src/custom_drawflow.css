@@ -1,0 +1,132 @@
+/* drawflow_src/custom_drawflow.css */
+
+/* Canvas background */
+#drawflow {
+    background-color: #f9fafb; /* Tailwind gray-50 */
+    background-image:
+        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: 25px 25px; /* Slightly larger grid */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    width: 100%;
+    height: 100%;
+    display: block; /* Ensure it behaves like a block element for sizing */
+}
+
+/* Base node style that Drawflow wraps your HTML in */
+.drawflow .drawflow-node {
+    border-radius: 8px;
+    border: 1px solid #d1d5db; /* gray-300 */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* Tailwind shadow-md */
+    background-color: transparent; /* The inner template-node-wrapper will have the bg */
+    padding: 0; /* Remove padding as inner div handles it */
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.drawflow .drawflow-node:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* Tailwind shadow-lg */
+}
+
+.drawflow .drawflow-node.selected {
+    border-color: var(--node-conn-color, #2563eb); /* Use connection color or a default */
+    box-shadow: 0 0 0 3px rgba(var(--node-conn-color-rgb, 37, 99, 235), 0.3); /* Ring effect */
+}
+
+
+/* Wrapper for your custom HTML content inside Drawflow's node */
+.template-node-wrapper {
+    border-radius: 7px; /* Slightly less than outer for nice fit */
+    overflow: hidden;
+    background-color: var(--node-body-bg, #ffffff); /* Default from template */
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+}
+
+.node-header {
+    background-color: var(--node-header-bg, #6b7280); /* Default from template */
+    color: white;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.node-icon {
+    font-size: 1.1em;
+}
+
+.node-detail {
+    margin-left: auto;
+    font-size: 0.75em;
+    opacity: 0.8;
+}
+
+.node-body {
+    padding: 10px 12px;
+    font-size: 0.9em;
+    color: #374151; /* gray-700 */
+    flex-grow: 1;
+}
+.node-body p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.node-footer {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    color: #6b7280; /* gray-500 */
+    border-top: 1px solid #e5e7eb; /* gray-200 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.node-footer button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.7;
+}
+.node-footer button:hover {
+    opacity: 1;
+}
+
+
+/* Styling for node types based on class */
+.drawflow .start-node .node-header {
+     border-left: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black); 
+}
+.drawflow .end-node .node-header {
+     border-right: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black); 
+}
+.drawflow .intermediate-node .node-header {
+    border-right: 5px
+}
+
+
+/* Inputs and outputs points */
+.drawflow .input, .drawflow .output {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--node-conn-color, #4b5563); /* gray-600 or from template */
+    border: 2px solid var(--node-body-bg, #ffffff); /* Match node body bg */
+    box-shadow: 0 0 0 1px var(--node-conn-color, #4b5563); /* Outer ring */
+}
+.drawflow .input:hover, .drawflow .output:hover {
+    transform: scale(1.2);
+}
+
+/* Connection lines */
+.drawflow .connection .main-path { /* Drawflow v0.0.60+ uses .main-path for the visible line */
+    stroke: var(--node-conn-color, #6b7280); /* gray-500 or from source node's var */
+    stroke-width: 2.5;
+    fill: transparent;
+}
+.drawflow .connection .main-path:hover {
+    stroke-width: 3.5;
+}
