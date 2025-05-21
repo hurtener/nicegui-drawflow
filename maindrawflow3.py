@@ -27,6 +27,7 @@ class DrawflowEditor(ui.element, component='drawflow_component.js'):
         ui.add_head_html(f'<script src="/drawflow_src/drawflow.min.js?{ts}"></script>')
         ui.add_head_html(f'<link rel="stylesheet" href="/drawflow_src/dfTheme.css?{ts + 0.5}">')
         ui.add_head_html(f'<link rel="stylesheet" href="/drawflow_src/custom_drawflow.css?{ts+1}">')
+        ui.add_head_html(f'<script src="/drawflow_src/elk.bundled.js?{ts + 2}"></script>')
 
     def load_data(self, data: Dict[str, Any]) -> None:
         """
@@ -102,6 +103,12 @@ class DrawflowEditor(ui.element, component='drawflow_component.js'):
         """Resets the editor zoom to default."""
         self.run_method('resetZoom')
 
+    async def auto_layout_nodes(self) -> None:
+        """
+        Triggers the automatic layout of nodes using ELK.js in the Drawflow editor.
+        """
+        await self.run_method("autoLayoutNodes")
+
 
 @ui.page('/')
 async def main_page():
@@ -167,7 +174,17 @@ async def main_page():
                     ui.button('Zoom Out', on_click=drawflow.zoom_out, icon='zoom_out').props('flat dense')
                     ui.button('Reset Zoom', on_click=drawflow.zoom_reset, icon='center_focus_strong').props('flat dense')
 
-                output = ui.code(language='json').classes('w-full grow min-h-[200px] mt-4 border rounded p-2')
+                ui.separator().classes("my-4")
+                ui.label("Layout Controls").classes("text-h6 font-semibold")
+
+                ui.button(
+                    "Auto-Layout Nodes",
+                    on_click=drawflow.auto_layout_nodes,
+                    icon="auto_awesome"
+                ).props("color=info").classes("w-full mt-2")
+
+
+                output = ui.code(language='json').classes('w-full scroll-auto grow min-h-[200px] mt-4 border rounded p-2')
 
                 async def handle_export():
                     data = await drawflow.get_data()

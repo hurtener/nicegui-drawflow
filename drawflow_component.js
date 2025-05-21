@@ -1,4 +1,7 @@
 // drawflow_component.js
+
+
+
 const NODE_TEMPLATES = [
 {
     id: 'basic_start', // Only outputs
@@ -110,6 +113,7 @@ const NODE_TEMPLATES = [
       // this.editor.on('connectionCreated', (conn) => this.$emit('connection-created', conn));
     },
     methods: {
+      
       addTemplateNode(templateId, params) {
         const tpl = NODE_TEMPLATES.find(t => t.id === templateId);
         if (!tpl) {
@@ -184,6 +188,151 @@ const NODE_TEMPLATES = [
         if (!this.editor) return;
         this.editor.clear();
         this.editor.addModule('Home'); // Re-add default module after clearing
+      },
+
+      async autoLayoutNodes() {
+          if (!this.editor) {
+              console.error("Drawflow editor not initialized.");
+              return;
+          }
+
+          const currentData = this.editor.export();
+          // Check if there's any data in the 'Home' module
+          if (!currentData || !currentData.drawflow || !currentData.drawflow.Home || !currentData.drawflow.Home.data || Object.keys(currentData.drawflow.Home.data).length === 0) {
+              console.warn("No nodes to layout in the 'Home' module.");
+              return;
+          }
+
+          const nodesData = currentData.drawflow.Home.data;
+          const elkNodes = [];
+          const elkEdges = [];
+
+          // 1. Map Drawflow nodes and connections to ELK.js format
+          for (const nodeId in nodesData) {
+              if (nodesData.hasOwnProperty(nodeId)) {
+                  const node = nodesData[nodeId];
+                  const el = document.getElementById(`node-${nodeId}`); // Drawflow assigns IDs like 'node-X'
+                  if (el) {
+                      // Get actual rendered width and height of the node element
+                      const width = el.offsetWidth;
+                      const height = el.offsetHeight;
+
+                      // Add node to ELK graph
+                      elkNodes.push({
+                          id: String(node.id), // ELK.js expects string IDs
+                          width: width,
+                          height: height,
+                          // Define ports for more precise edge routing
+                          ports: Object.keys(node.inputs || {}).map(inputName => ({
+                              id: `${node.id}_${inputName}`,
+                              properties: { 'org.eclipse.elk.port.side': 'WEST' } // Default input ports to the left
+                          })).concat(Object.keys(node.outputs || {}).map(outputName => ({
+                              id: `${node.id}_${outputName}`,
+                              properties: { 'org.eclipse.elk.port.side': 'EAST' } // Default output ports to the right
+                          }))),
+                      });
+
+                      // Add edges to ELK graph
+                      for (const outputName in node.outputs) {
+                          if (node.outputs.hasOwnProperty(outputName)) {
+                              node.outputs[outputName].connections.forEach(connection => {
+                                  elkEdges.push({
+                                      id: `edge-${node.id}-${outputName}-${connection.node}-${connection.output}`,
+                                      source: String(node.id),
+                                      sourcePort: `${node.id}_${outputName}`, // Connect from specific output port
+                                      target: String(connection.node),
+                                      targetPort: `${connection.node}_${connection.output}`, // Connect to specific input port
+                                  });
+                              });
+                          }
+                      }
+                  } else {
+                      console.warn(`DOM element for node ${nodeId} not found. Skipping this node for layout.`);
+                  }
+              }
+          }
+
+          if (elkNodes.length === 0) {
+              console.warn("No layoutable nodes found after processing. Layout skipped.");
+              return;
+          }
+
+          const elk = new ELK(); // Corrected case (ELK instead of Elk)
+          const graph = {
+              id: 'root',
+              layoutOptions: {
+                  'elk.algorithm': 'layered', // Best for directed graphs/flowcharts
+                  'elk.direction': 'RIGHT', // Flow from left to right (can be 'DOWN' for vertical)
+                  'elk.spacing.nodeNode': '70', // Minimum space between nodes
+                  'elk.spacing.portPort': '10', // Space between ports on the same node
+                  'elk.spacing.edgeNode': '40', // Space between edges and nodes
+                  'elk.layered.spacing.nodeNodeBetweenLayers': '100', // Horizontal space between layers/columns
+                  'elk.layered.nodePlacement.strategy': 'SIMPLE', // Simpler placement strategy
+                  'elk.padding': '[top=20,left=20,bottom=20,right=20]', // Padding around the entire graph
+                  'elk.edgeRouting': 'ORTHOGONAL', // Orthogonal (right-angle) lines with bends
+                  // 'elk.edgeRouting': 'SPLINES', // Curved lines (alternative)
+              },
+              children: elkNodes,
+              edges: elkEdges,
+          };
+
+          try {
+              console.log("Starting ELK.js layout for", elkNodes.length, "nodes and", elkEdges.length, "edges...");
+              const result = await elk.layout(graph);
+              console.log("ELK.js layout complete.", result);
+
+              if (result && result.children) {
+                  const initialCanvasX = 50; // Arbitrary starting X position for the whole layout
+                  const initialCanvasY = 50; // Arbitrary starting Y position for the whole layout
+                  
+                  const nodesToUpdateConnectionsFor = []; // Store IDs of nodes that moved
+
+                  result.children.forEach(elkNode => {
+                      const drawflowNodeId = parseInt(elkNode.id); // Convert ELK's string ID back to integer
+                      const nodeElement = document.getElementById(`node-${drawflowNodeId}`);
+                      
+                      if (nodeElement) {
+                          // Get Drawflow's internal node data object
+                          const nodeData = this.editor.getNodeFromId(drawflowNodeId);
+
+                          if (nodeData) {
+                              // 2. Update Drawflow's internal data for the node's position
+                              nodeData.pos_x = elkNode.x + initialCanvasX;
+                              nodeData.pos_y = elkNode.y + initialCanvasY;
+
+                              // 3. Directly update the DOM element's position using translate3d
+                              // Drawflow applies transform property for positioning, not left/top
+                              nodeElement.style.transform = `translate3d(${nodeData.pos_x}px, ${nodeData.pos_y}px, 0px)`;
+                              
+                              // Add to list for connection updates
+                              nodesToUpdateConnectionsFor.push(drawflowNodeId);
+                          } else {
+                              console.warn(`Drawflow internal data not found for node ID: ${drawflowNodeId}`);
+                          }
+                      } else {
+                          console.warn(`DOM element not found for node ID: ${drawflowNodeId}`);
+                      }
+                  });
+
+                  // 4. After all nodes have been visually moved,
+                  // tell Drawflow to update all affected connections.
+                  // This is crucial for lines to follow the nodes.
+                  nodesToUpdateConnectionsFor.forEach(nodeId => {
+                      this.editor.updateConnection(nodeId);
+                  });
+
+                  // Optional: Center or zoom the view after layout
+                  // (This is more complex and would require calculating the bounding box
+                  // of the laid out graph and adjusting this.editor.canvas_x, this.editor.canvas_y,
+                  // and this.editor.zoom accordingly. For now, a simple offset is applied.)
+
+              } else {
+                  console.warn("ELK.js layout returned no children or invalid result.");
+              }
+          } catch (error) {
+              console.error("ELK.js layout failed:", error);
+              // You might want to display a more user-friendly error message here
+          }
       },
     }
   };
