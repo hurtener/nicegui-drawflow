@@ -1,6 +1,6 @@
 /* drawflow_src/custom_drawflow.css */
 
-/* Canvas background */
+/* Canvas background - Keep as is, it's specific to the canvas and not impacted by dfTheme.css grid */
 #drawflow {
     background-color: #f9fafb; /* Tailwind gray-50 */
     background-image:
@@ -10,35 +10,36 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     width: 100%;
     height: 100%;
-    display: block; /* Ensure it behaves like a block element for sizing */
+    display: block;
 }
 
 /* Base node style that Drawflow wraps your HTML in */
+/* Overrides dfTheme.css for specific border, shadow, and desired rounding */
 .drawflow .drawflow-node {
-    border-radius: 8px;
-    border: 1px solid #d1d5db; /* gray-300 */
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* Tailwind shadow-md */
-    background-color: transparent; /* The inner template-node-wrapper will have the bg */
+    border-radius: 12px; /* Consistent rounding as per previous image */
+    border: 1px solid #d1d5db; /* gray-300 subtle border */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* Subtle Tailwind shadow */
+    background-color: transparent; /* Keep transparent, inner div defines bg */
     padding: 0; /* Remove padding as inner div handles it */
     transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
-
 .drawflow .drawflow-node:hover {
     transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* Tailwind shadow-lg */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* Tailwind shadow-lg on hover */
 }
-
 .drawflow .drawflow-node.selected {
-    border-color: var(--node-conn-color, #2563eb); /* Use connection color or a default */
-    box-shadow: 0 0 0 3px rgba(var(--node-conn-color-rgb, 37, 99, 235), 0.3); /* Ring effect */
+    /* Overrides dfTheme.css selected colors for a consistent blue highlight */
+    border-color: #2563eb; /* Stronger blue border */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); /* Blue ring effect */
+    background-color: transparent; /* Keep background transparent */
 }
 
 
 /* Wrapper for your custom HTML content inside Drawflow's node */
 .template-node-wrapper {
-    border-radius: 7px; /* Slightly less than outer for nice fit */
-    overflow: hidden;
-    background-color: var(--node-body-bg, #ffffff); /* Default from template */
+    border-radius: 11px; /* Slightly less than outer for nice fit */
+    overflow: hidden; /* Crucial for clipping content to rounded corners */
+    background-color: transparent; /* This wrapper itself should not have a background */
     display: flex;
     flex-direction: column;
     min-width: 180px;
@@ -53,11 +54,9 @@
     gap: 8px;
     font-weight: 600;
 }
-
 .node-icon {
     font-size: 1.1em;
 }
-
 .node-detail {
     margin-left: auto;
     font-size: 0.75em;
@@ -65,6 +64,7 @@
 }
 
 .node-body {
+    background-color: var(--node-body-bg, #ffffff); /* APPLY body background here */
     padding: 10px 12px;
     font-size: 0.9em;
     color: #374151; /* gray-700 */
@@ -76,6 +76,7 @@
 }
 
 .node-footer {
+    background-color: var(--node-body-bg, #ffffff); /* APPLY body background here as well */
     padding: 6px 12px;
     font-size: 0.8em;
     color: #6b7280; /* gray-500 */
@@ -95,35 +96,43 @@
     opacity: 1;
 }
 
-
 /* Styling for node types based on class */
 .drawflow .start-node .node-header {
-     border-left: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black); 
+    border-left: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black);
 }
 .drawflow .end-node .node-header {
-     border-right: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black); 
+    border-right: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black);
 }
 .drawflow .intermediate-node .node-header {
-    border-right: 5px
+    border-right: 5px solid color-mix(in srgb, var(--node-header-bg) 70%, black);
 }
 
-
 /* Inputs and outputs points */
+/* Overrides dfTheme.css to ensure white/black circles and specific size/position */
 .drawflow .input, .drawflow .output {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background-color: var(--node-conn-color, #4b5563); /* gray-600 or from template */
-    border: 2px solid var(--node-body-bg, #ffffff); /* Match node body bg */
-    box-shadow: 0 0 0 1px var(--node-conn-color, #4b5563); /* Outer ring */
+    width: 18px; /* Consistent size */
+    height: 18px;
+    border-radius: 50%; /* Ensure they are circular */
+    background-color: white; /* Default to white as per image's outputs */
+    border: 1px solid black; /* Black border as per image */
+    box-shadow: none; /* Remove extra white/colored ring */
+    top: 50%; /* Vertically center */
+    margin-top: -9px; /* Pull up by half its height */
+}
+.drawflow .input {
+    left: -9px; /* Half of its width outside the left edge */
+}
+.drawflow .output {
+    right: -9px; /* Half of its width outside the right edge */
 }
 .drawflow .input:hover, .drawflow .output:hover {
     transform: scale(1.2);
 }
 
 /* Connection lines */
-.drawflow .connection .main-path { /* Drawflow v0.0.60+ uses .main-path for the visible line */
-    stroke: var(--node-conn-color, #6b7280); /* gray-500 or from source node's var */
+/* Overrides dfTheme.css to ensure fixed grey color */
+.drawflow .connection .main-path {
+    stroke: #666666; /* Fixed grey color as per image */
     stroke-width: 2.5;
     fill: transparent;
 }

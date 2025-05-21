@@ -1,7 +1,7 @@
 from nicegui import ui, app
 import time
 import json
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 # Serve Drawflow assets
 app.add_static_files('/drawflow_src', 'drawflow_src')
@@ -25,6 +25,7 @@ class DrawflowEditor(ui.element, component='drawflow_component.js'):
         ts = int(time.time())
         ui.add_head_html(f'<link rel="stylesheet" href="/drawflow_src/drawflow.min.css?{ts}">')
         ui.add_head_html(f'<script src="/drawflow_src/drawflow.min.js?{ts}"></script>')
+        ui.add_head_html(f'<link rel="stylesheet" href="/drawflow_src/dfTheme.css?{ts + 0.5}">')
         ui.add_head_html(f'<link rel="stylesheet" href="/drawflow_src/custom_drawflow.css?{ts+1}">')
 
     def load_data(self, data: Dict[str, Any]) -> None:
@@ -108,17 +109,6 @@ async def main_page():
     ui.query('body').style('min-height: 100vh; margin: 0; padding: 0;')
     ui.query('.nicegui-content').classes('h-screen p-0 m-0').style('display: flex; flex-direction: column;')
 
-    # Example initial data (optional)
-    # initial_flow_data = {
-    #     "drawflow": {
-    #         "Home": {
-    #             "data": {
-    #                 "1": {"id":1,"name":"Welcome","data":{},"class":"welcome","html":"\n    <div>\n      <h3>Welcome Drawflow</h3>\n    </div>\n    ","typenode":"vue","inputs":{},"outputs":{"output_1":{"connections":[{"node":"2","output":"input_1"}]}},"pos_x":50,"pos_y":80},
-    #                 "2": {"id":2,"name":"Nice Message","data":{"message":"Hello World"},"class":"","html":"\n    <div>\n      <p>Nice Message</p>\n      <input type=\"text\" df-message>\n    </div>\n    ","typenode":"vue","inputs":{"input_1":{"connections":[{"node":"1","input":"output_1"}]}},"outputs":{},"pos_x":350,"pos_y":150}
-    #             }
-    #         }
-    #     }
-    # }
     initial_flow_data = None # Start empty
 
     with ui.splitter(value=70).classes('w-full h-full no-wrap overflow-hidden flex-grow') as splitter:

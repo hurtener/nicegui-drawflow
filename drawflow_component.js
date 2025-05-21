@@ -1,97 +1,74 @@
 // drawflow_component.js
 const NODE_TEMPLATES = [
-    {
-      id: 'basic_start', // Only outputs
-      icon: '🏁',
-      inputs: 0,
-      outputs: 1,
-      defaults: { // CSS Custom Properties
-        '--node-header-bg': '#4f46e5', // indigo-600
+{
+    id: 'basic_start', // Only outputs
+    icon: '∷', // Changed icon to match the new image
+    inputs: 0,
+    outputs: 1,
+    defaults: { // CSS Custom Properties
+        '--node-header-bg': '#4f46e5', // indigo-600 (Purple)
         '--node-body-bg': '#eef2ff',   // indigo-50
-        '--node-conn-color': '#4f46e5',
-      },
-      render({ title, content, tooltip }) {
-        return `
-          <div class="node-header" title="${tooltip || ''}">
-            <span class="node-icon">${this.icon}</span>
-            <strong>${title}</strong>
-          </div>
-          <div class="node-body">
-            <p>${content || 'Start point'}</p>
-          </div>
-        `;
-      }
+        '--node-conn-color': '#4f46e5', // Used for selected border etc.
     },
-    {
-      id: 'basic_intermediate', // Inputs and Outputs
-      icon: '📄',
-      inputs: 1,
-      outputs: 1,
-      defaults: {
+    render({ title, content, tooltip }) {
+        return `<div class="node-header" title="${tooltip || ''}"> <span class="node-icon">${this.icon}</span> <strong>${title}</strong> </div> <div class="node-body"> <p>${content || 'Start point'}</p> </div>`;
+    }
+},
+{
+    id: 'basic_intermediate', // Inputs and Outputs
+    icon: '📄',
+    inputs: 1,
+    outputs: 1,
+    defaults: {
         '--node-header-bg': '#16a34a', // green-600
         '--node-body-bg': '#f0fdf4',   // green-50
         '--node-conn-color': '#16a34a',
-      },
-      render({ title, content, tooltip }) {
-        return `
-          <div class="node-header" title="${tooltip || ''}">
-            <span class="node-icon">${this.icon}</span>
-            <strong>${title}</strong>
-          </div>
-          <div class="node-body">
-            <p>${content || 'Processing step'}</p>
-          </div>
-        `;
-      }
     },
-    {
-      id: 'basic_end', // Only inputs
-      icon: '🛑',
-      inputs: 1,
-      outputs: 0,
-      defaults: {
+    render({ title, content, tooltip }) {
+        return `<div class="node-header" title="${tooltip || ''}"> <span class="node-icon">${this.icon}</span> <strong>${title}</strong> </div> <div class="node-body"> <p>${content || 'Processing step'}</p> </div>`;
+    }
+},
+{
+    id: 'basic_end', // Only inputs
+    icon: '🛑',
+    inputs: 1,
+    outputs: 0,
+    defaults: {
         '--node-header-bg': '#db2777', // pink-600
         '--node-body-bg': '#fdf2f8',   // pink-50
         '--node-conn-color': '#db2777',
-      },
-      render({ title, content, tooltip }) {
-        return `
-          <div class="node-header" title="${tooltip || ''}">
-            <span class="node-icon">${this.icon}</span>
-            <strong>${title}</strong>
-          </div>
-          <div class="node-body">
-            <p>${content || 'End point'}</p>
-          </div>
-        `;
-      }
     },
-    {
-      id: 'detailed_intermediate',
-      icon: '🧩',
-      inputs: 1, // Example: 1 input
-      outputs: 2, // Example: 2 outputs (e.g., success/failure)
-      defaults: {
+    render({ title, content, tooltip }) {
+        return `<div class="node-header" title="${tooltip || ''}"> <span class="node-icon">${this.icon}</span> <strong>${title}</strong> </div> <div class="node-body"> <p>${content || 'End point'}</p> </div>`;
+    }
+},
+{
+    id: 'detailed_intermediate',
+    icon: '🧩',
+    inputs: 1,
+    outputs: 2,
+    defaults: {
         '--node-header-bg': '#059669', // emerald-600
         '--node-body-bg': '#ecfdf5',   // emerald-50
         '--node-conn-color': '#059669',
-      },
-      render({ title, content, tooltip, nodeId }) { // nodeId passed from addTemplateNode
+    },
+    render({ title, content, tooltip, nodeId }) {
         return `
-          <div class="node-header" title="${tooltip || ''}">
+        <div class="node-header" title="${tooltip || ''}">
             <span class="node-icon">${this.icon}</span>
             <strong>${title}</strong>
             ${nodeId ? `<small class="node-detail">#${nodeId}</small>` : ''}
-          </div>
-          <div class="node-body"><p>${content || 'Detailed task'}</p></div>
-          <div class="node-footer">
+        </div>
+        <div class="node-body">
+            <p>${content || 'Detailed task'}</p>
+        </div>
+        <div class="node-footer">
             <small>I: ${this.inputs}, O: ${this.outputs}</small>
             <!-- <button df-action="info" title="More Info">ℹ️</button> -->
-          </div>
-        `;
-      }
+        </div>`;
     }
-  ];
+}
+];
   
   export default {
     // The root element of the component will be this div.
